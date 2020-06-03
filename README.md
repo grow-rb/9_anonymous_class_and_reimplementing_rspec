@@ -25,7 +25,7 @@ Rubyの世界ではクラスはオブジェクトですので、`new`メソッ�
 lvar = "foo"
 klass = Class.new do
   define_method :foo do
-    foo
+    lvar
   end
 end
 
