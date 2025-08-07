@@ -1,25 +1,25 @@
-# 無名クラス
+# Anonymous Classes
 
-Rubyでクラスを定義するには2通りの方法があります。`class`キーワードと`Class.new`です。
+There are two ways to define classes in Ruby: using the `class` keyword and using `Class.new`.
 
 ## class
 
-`class`キーワードはクラス定義しつつそのクラスの中にコンテキストを移します。
+The `class` keyword defines a class while moving the context inside that class.
 
-このクラス定義の仕方は一般的ですが、一方でいくつかの制約があります。例えば、
+This method of class definition is common, but it has several constraints. For example:
 
-* 名前を動的に指定できない
-* `class`キーワードの外部にある変数にアクセスできない
+* Names cannot be specified dynamically
+* Variables outside the `class` keyword cannot be accessed
 
-これらの制約は通常あまり問題になりませんが、問題になるケースでは以下の`Class.new`を使います。
+These constraints usually don't pose much of a problem, but when they do become problematic, we use `Class.new` as described below.
 
 ## Class.new
 
-Rubyの世界ではクラスはオブジェクトですので、`new`メソッドで作ることができます。この方法で作られたクラスは定数に代入されるまで無名なので「無名クラス」と言われることもあります。
+In Ruby's world, classes are objects, so they can be created with the `new` method. Classes created this way are anonymous until they are assigned to a constant, which is why they are sometimes called "anonymous classes."
 
-無名クラスでは動的に名前付けができますし、名前をつける必要がないときは無名のままにできます。また、変数のスコープを作らないため、`define_method`と組み合わせることで現在のスコープにある変数をクラス定義の内部で使うことができます。
+With anonymous classes, you can assign names dynamically, and when you don't need to name them, you can leave them anonymous. Also, since they don't create variable scope, when combined with `define_method`, you can use variables in the current scope inside the class definition.
 
-例を見てみましょう。
+Let's look at an example:
 
 ```ruby
 lvar = "foo"
@@ -34,14 +34,14 @@ puts Class_2.new.foo
 # => foo
 ```
 
-## DSLの作り方をおさらい
+## Review of DSL Construction
 
-DSLを構築する際に多く使われるのは`instance_eval`です。また、アプリケーションクラスと呼ばれるDSL評価用のクラスを作って各DSLをそこへのポインタ的に使う手法もあります（Rakeなど）。しかし、これらの方法には制約があります。スコープが区切られないため、メソッドを定義すると定義が`main`オブジェクトに漏れ出してしまうのです。
+What is commonly used when building DSLs is `instance_eval`. There's also a technique of creating an application class for DSL evaluation and using each DSL as a pointer to it (like Rake). However, these methods have constraints. Since scope is not separated, when you define methods, the definitions leak out to the `main` object.
 
-試しに、以下のコードを`rake foo:bar`で実行してみましょう。
+Let's try running the following code with `rake foo:bar`:
 
 ```ruby
-# 適当なディレクトリに配置
+# Place in any directory
 # Rakefile
 
 namespace :foo do
@@ -55,14 +55,14 @@ namespace :foo do
   end
 end
 
-bar # これはエラーになってほしい
+bar # This should cause an error
 ```
 
-すると`bar`が2回出力されます。これは一番下の`bar`がエラーになっていないことによるものです。これは一見直観に反しますが、`namespace`メソッドがクラス定義をしているわけではない、ということを理解すると結局`def bar`は`main`オブジェクトに対してのメソッド定義になっていることがわかるかと思います。
+You'll see `bar` output twice. This is because the `bar` at the bottom doesn't cause an error. While this may seem counterintuitive at first, if you understand that the `namespace` method doesn't create a class definition, you'll realize that `def bar` ends up being a method definition for the `main` object.
 
-## DSLから無名クラスを作る
+## Creating Anonymous Classes from DSLs
 
-では、RSpecのDSLではどうでしょうか。以下のコードを`rspec foo_spec.rb`などで実行してみましょう。
+What about RSpec's DSL? Let's try running the following code with `rspec foo_spec.rb`:
 
 ```ruby
 # foo_spec.rb
@@ -82,13 +82,13 @@ end
 some_method
 ```
 
-今度はエラーになったかと思います。ここで、最下部の`some_method`呼び出しを削除して再実行してみましょう。すると、`RSpec::ExampleGroups::ThisIsTheDescription::ThisIsInnerDescription`のような出力が得られます。これは`puts self.class`の結果ですので、`def some_method`はこの（定義した覚えのない）クラスに対して定義されていることがわかります。
+This time it should cause an error. Now, remove the `some_method` call at the bottom and run it again. You should get output like `RSpec::ExampleGroups::ThisIsTheDescription::ThisIsInnerDescription`. This is the result of `puts self.class`, so you can see that `def some_method` is defined for this class (that you don't remember defining).
 
-ここで使われているのが無名クラスです。無名クラスには名前を後から与えることができるので、上のように`describe`メソッドに与えた文字列を元にクラス名を決定することもできるわけですね。
+What's being used here is anonymous classes. Since anonymous classes can be given names later, it's possible to determine class names based on the strings given to the `describe` method, as shown above.
 
-## 無名クラスのメソッド
+## Methods in Anonymous Classes
 
-`Class.new`で定義したクラスに対してメソッドを定義するには`Class.new`にブロックを与え、その中で通常通りメソッドを定義します。
+To define methods for classes created with `Class.new`, you provide a block to `Class.new` and define methods normally within it.
 
 ```ruby
 klass = Class.new do
@@ -100,9 +100,9 @@ end
 klass.new.foo # => foo
 ```
 
-## 無名クラスの親クラス
+## Parent Classes of Anonymous Classes
 
-`Class.new`に引数を与えるとそのクラスは親クラスになります。
+When you provide an argument to `Class.new`, that class becomes the parent class.
 
 ```ruby
 class Parent
